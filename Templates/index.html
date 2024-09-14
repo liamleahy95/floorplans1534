@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McDonald's Floor Plan</title>
+    <style>
+        /* Set the wallpaper as the background for the entire webpage */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: url("{{ url_for('static', filename='wallpaper.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Main content area with a separate background image */
+        #background {
+            position: relative;
+            width: 1000px;
+            height: 800px;
+            background: url("{{ url_for('static', filename='imagetest.png') }}") no-repeat center center;
+            background-size: contain;  /* Adjust the background to fit the container */
+            margin: 50px auto;  /* Center the content in the middle of the page */
+            border: 1px solid #000;
+        }
+
+        /* Employee styling */
+        .employee-list {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .employee {
+            font-size: 12px; /* Reduced font size */
+            position: absolute;
+            cursor: move;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="background">
+        <div class="employee-list" id="employee-list">
+            {% for employee in employees %}
+                <div class="employee" 
+                    data-top="{{ loop.index0 * 30 }}" 
+                    data-left="20"
+                    draggable="true" 
+                    ondragstart="drag(event)" 
+                    id="emp{{ loop.index }}">
+                    {{ employee[0] }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <form method="POST" action="/paste_names" style="text-align: center; margin-top: 20px;">
+        <textarea name="pasted_names" rows="10" cols="50" placeholder="Paste employee names here..."></textarea><br><br>
+        <button type="submit">Paste Names</button>
+    </form>
+
+    <form method="POST" action="/clear_names" style="text-align: center; margin-top: 10px;">
+        <button type="submit">Clear Names</button>
+    </form>
+
+    <script>
+        // JavaScript for enabling drag-and-drop functionality
+        let currentDraggedElement = null;
+
+        function drag(event) {
+            currentDraggedElement = event.target;
+            event.dataTransfer.setData("text/plain", event.target.id);
+        }
+
+        document.getElementById('employee-list').addEventListener('dragover', function(event) {
+            event.preventDefault();
+        });
+
+        document.getElementById('employee-list').addEventListener('drop', function(event) {
+            event.preventDefault();
+
+            // Get the coordinates of the #background container
+            const backgroundRect = document.getElementById('background').getBoundingClientRect();
+
+            // Calculate drop position relative to the container
+            const dropX = event.clientX - backgroundRect.left;
+            const dropY = event.clientY - backgroundRect.top;
+
+            // Place the dragged element exactly at the calculated position
+            currentDraggedElement.style.left = `${dropX}px`;
+            currentDraggedElement.style.top = `${dropY}px`;
+        });
+
+        // Set the initial positions based on data attributes
+        document.addEventListener('DOMContentLoaded', function() {
+            const employees = document.querySelectorAll('.employee');
+            employees.forEach(employee => {
+                const top = employee.getAttribute('data-top');
+                const left = employee.getAttribute('data-left');
+                employee.style.top = `${top}px`;
+                employee.style.left = `${left}px`;
+            });
+        });
+    </script>
+
+</body>
+</html>
